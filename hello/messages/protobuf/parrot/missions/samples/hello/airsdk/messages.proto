@@ -11,18 +11,91 @@ option java_package = "com.parrot.drone.missions.samples.hello.airsdk";
 option java_outer_classname = "Hello";
 
 option (olympe_package) = "parrot.missions.samples.hello";
+// Requires repeated | optional | required
 
-// Union of all possible commands of this package.
+// Set Up Types
+//message Coord2 {
+  //float32 x = 1;
+  //float32 y = 2;
+//}
+
+
+//message Coord4 {
+//float32 x = 1;
+  //optional float32 y = 2;
+  //float32 z = 3;
+  //float32 yaw = 4;
+//}
+
+// Set goTo Position for known tower position
+//message ApproachTower {
+  //float32 yaw_from_current = 1;
+  //float32 target_distance = 2;
+//}
+
+//message FindTowerParameters {
+  //bool find_center = 1;
+  //bool find_tower = 2;
+//}
+
+//message OrbitData {
+  //float32 height = 1;
+  //float32 gimbal_angle = 2;
+  //float32 radius = 3;
+//}
+
+//message TowerData {
+  //Coord2 center = 1;  // In local x/y
+  //repeated OrbitData orbits = 2;
+//}
+
+message FindTowerParameters {
+    float x = 1;
+    float y = 2;
+    bool visible = 3;
+}
+
+
+// Union of all possible commands of this package. Messages coming from
+// Mission UI to the Air SDK mission.
 message Command {
     oneof id {
-        // Ask to start say hello (ground)
-        google.protobuf.Empty say = 1;
-        // Ask to stop say hello (ground)
-        google.protobuf.Empty hold = 2;
+
+        google.protobuf.Empty emergency_stop = 1; // Stop Everything and hover, move to manual flight state
+        
+        google.protobuf.Empty say = 2; // Ask to start say hello (ground)
+        
+        google.protobuf.Empty hold = 3; // Ask to stop say hello (ground)
+
+        google.protobuf.Empty take_off = 4;
+        
+        //google.protobuf.Empty my_messages_command = 5;
+
+        google.protobuf.Empty start_ascend_tower = 6;
+
+        FindTowerParameters start_find_tower = 7;
+
+        //ApproachTower approach_tower = 8; // For getting the drone the desired distance from the tower
+
+        //float32 set_gimbal_angle = 9;  // So we can look down for the center
+
+        //TowerData start_tower_capture = 10;  // Starts a tower capture
+
+        //Coord4 start_pano_capture = 11; // Starts a pano capture. Only needs one coord for this.
+
+        //repeated coord4 start_ortho_capture = 12;  
+        // Making an assumption that the math for the ortho can be done in the app and the points sent. 
+        //Easily changed to have exactly 4 Coord2 and a float32 height for on drone.
+
+        google.protobuf.Empty stop_state = 13; // Stop/End state and hover
+
+        
     }
 }
 
-// Union of all possible events of this package.
+
+// Union of all possible events of this package. Messages coming from the
+// Air SDK mission towards Mission UI
 message Event {
     oneof id {
         // Count of hello (ground)
@@ -33,5 +106,16 @@ message Event {
         bool drone_moving = 3;
         // Mean depth to closest object
         float depth_mean = 4;
+        
+        google.protobuf.Empty my_messages_event = 5;
+
+        google.protobuf.Empty at_photo_position = 6; // This is here because we still don't know how to take a photo from the airsdk
+
+        google.protobuf.Empty capture_complete = 7; // Is sent whenever a capture is completed
+
+        google.protobuf.Empty goto_complete = 8; // Is sent whenever a goto is complete
+        
+        google.protobuf.Empty path_obstructed = 9; // Is the path obstructed (Transition to hovering)
+        
     }
 }

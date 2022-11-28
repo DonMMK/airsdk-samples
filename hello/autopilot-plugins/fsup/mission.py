@@ -1,21 +1,13 @@
 from msghub_utils import msg_id
 from fsup.genmission import AbstractMission
-from fsup.missions.default.takeoff.stage import (
-    TAKEOFF_STAGE as DEF_TAKEOFF_STAGE,
-)
-from fsup.missions.default.hovering.stage import (
-    HOVERING_STAGE as DEF_HOVERING_STAGE,
-)
-from fsup.missions.default.landing.stage import (
-    LANDING_STAGE as DEF_LANDING_STAGE,
-)
-from fsup.missions.default.critical.stage import (
-    CRITICAL_STAGE as DEF_CRITICAL_STAGE,
-)
+from fsup.missions.default.takeoff.stage import (TAKEOFF_STAGE as DEF_TAKEOFF_STAGE)
+from fsup.missions.default.hovering.stage import (HOVERING_STAGE as DEF_HOVERING_STAGE)
+from fsup.missions.default.landing.stage import (LANDING_STAGE as DEF_LANDING_STAGE)
+from fsup.missions.default.critical.stage import (CRITICAL_STAGE as DEF_CRITICAL_STAGE)
 from fsup.missions.default.mission import TRANSITIONS as DEF_TRANSITIONS
 
 # messages exchanged with mission UI
-import parrot.missions.samples.hello.airsdk.messages_pb2 as hello_msgs
+import parrot.missions.samples.hello.airsdk.messages_pb2 as airsdk_messages
 
 # messages exchanged with the guidance ground mode
 import samples.hello.guidance.messages_pb2 as hello_gdnc_mode_msgs
@@ -30,28 +22,60 @@ import fsup.services.events as events
 import drone_controller.drone_controller_pb2 as dctl_msgs
 import colibrylite.motion_state_pb2 as cbry_motion_state
 
+from fsup.message_center.service import ServicePair
+from fsup.message_center.observer import Observer
+from msghub import Channel
+
 from .ground.stage import GROUND_STAGE
 from .flying.stage import FLYING_STAGE
 from .uid import UID
 
+MSGHUB_ADDR = "unix:@hello"
 
 class Mission(AbstractMission):
+
+    '''
+    Attributes
+    ----------
+    - external_ui_messages: ServicePair
+        the external ui service pair of commands and events will permit to
+        observe commands that arrive from the client's mission UI that need to
+        be passed to the service.
+    - service_messages: ServicePair
+        the service's pair of commands and events will permit to observe
+        events that arrive from the service and pass them back to the
+        client's mission UI
+    - service_messages_channel: Channel
+        the service's communication channel
+    - _external_ui_channel_observer: Observer
+        observation handle for channel (UI <-> mission)
+
+    - _external_ui_forwarder: Observer
+        observation handle for commands (UI -> mission)
+
+    - _service_forwarder: Observer
+        observation handle for events (misson -> UI)
+    '''
+
     def __init__(self, env):
         super().__init__(env)
-        self.ext_ui_msgs = None
-        self.cv_service_msgs_channel = None
-        self.cv_service_msgs = None
+        self.ext_ui_msgs:ServicePair = None
+        self.cv_service_msgs_channel:Channel = None
+        self.cv_service_msgs:ServicePair = None
         self.gdnc_grd_mode_msgs = None
         self.observer = None
-        self.dbg_observer = None
+        self.dbg_observer = None #Debug Observer
 
     def on_load(self):
-        ##################################
-        # Messages / communication setup #
-        ##################################
-        # The airsdk service assumes that the mission is a server: as such it
-        # sends events and receive commands.
-        self.ext_ui_msgs = self.env.make_airsdk_service_pair(hello_msgs)
+        # Messages to and fro mission UI
+        self.ext_ui_msgs = self.env.make_airsdk_service_pair(airsdk_messages)
+
+        self.cmd_observer = self.ext_ui_msgs.cmd.observe_messages({
+            # self.ext_ui_msgs.cmd.idx.say:
+            #     lambda _: self._on_hello(),
+            self.ext_ui_msgs.cmd.idx.start_find_tower:
+                lambda msg: self.log.warning(f"Start Find Tower: On Load {msg}")
+        })
 
     def on_unload(self):
         ####################################
@@ -196,20 +220,23 @@ class Mission(AbstractMission):
         # component was received". In the state-machine, an event is
         # used to trigger a transition from a source state to a target
         # state.
+        ANY_STATE = ['ground', 'takeoff', 'hovering', 'flying', 'landing', 'critical']
+
+        EMERGENCY_TRANSITIONS = [
+                # [ "Autopilot.emergency", ANY_STATE, None],
+                [ msg_id(airsdk_messages.Command, "emergency_stop"), ANY_STATE, "landing"]
+            ]
 
         TRANSITIONS = [
-            # "say/hold" messages from the mission UI alternate between "say"
-            # and "idle" states in the ground stage.
-            [
-                msg_id(hello_msgs.Command, "say"),
-                "ground.idle",
-                "ground.say",
-            ],
-            [
-                msg_id(hello_msgs.Command, "hold"),
-                "ground.say",
-                "ground.idle",
-            ],
-        ]
+                # "say/hold" messages from the mission UI alternate between "say"
+                # and "idle" states in the ground stage.
+                [ msg_id(airsdk_messages.Command, "say"), "ground.idle", "ground.say"],
+                [ msg_id(airsdk_messages.Command, "hold"), "ground.say", "ground.idle"],
+                [ msg_id(airsdk_messages.Command, "take_off"), "ground.idle", "takeoff"],
+                [ msg_id(airsdk_messages.Command, "start_ascend_tower"), "hovering", "flying.ascend_tower"],
+                [ msg_id(airsdk_messages.Command, "start_find_tower"), "hovering", "flying.find_tower"],
+                [ msg_id(airsdk_messages.Command, "stop_state"), ["flying.ascend_tower", "flying.find_tower", "flying.rotate_tower"], "hovering"],
+                [ msg_id(airsdk_messages.Event, "path_obstructed"), "flying", "hovering"]
+            ]
 
-        return TRANSITIONS + DEF_TRANSITIONS
+        return EMERGENCY_TRANSITIONS + TRANSITIONS + DEF_TRANSITIONS

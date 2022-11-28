@@ -7,12 +7,14 @@ package samples.hello.guidance.messages;
 // Ground mode configuration
 message Config {
     bool say = 1;
+    bool my_guidance_config = 2;
 }
 
 // Union of all possible commands of this package.
 message Command {
     oneof id {
         google.protobuf.Empty empty = 1;
+        google.protobuf.Empty my_guidance_command = 2;
     }
 }
 
@@ -20,5 +22,14 @@ message Command {
 message Event {
     oneof id {
         uint32 count = 1;
+        uint32 my_guidance_event = 2;
+        google.protobuf.Empty mission_complete = 3;
+        google.protobuf.Empty path_obstructed = 4;
     }
+}
+
+message FindTowerParameters_Guidance {
+    float x = 1;
+    float y = 2;
+    bool visible = 3;
 }
