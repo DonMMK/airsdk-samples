@@ -162,7 +162,7 @@ class GoToMode(gdnc_core.Mode):
         pass
 
     def generate_attitude_reference(self):
-        self.log.error("SiteSee Ascend Tower mode generate_attitude_reference")
+        self.log.error("SiteSee Go To mode generate_attitude_reference")
         # Front
         self.output.has_front_cam_reference = True
         fcam_ref = self.output.front_cam_reference
