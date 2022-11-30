@@ -55,6 +55,14 @@ message FindTowerParameters {
     bool visible = 3;
 }
 
+message GoTo { 
+    float x = 1;
+    float y = 2;
+    float z = 3;
+    float yaw = 4;
+    float speed = 5;
+}
+
 
 // Union of all possible commands of this package. Messages coming from
 // Mission UI to the Air SDK mission.
@@ -89,6 +97,7 @@ message Command {
 
         google.protobuf.Empty stop_state = 13; // Stop/End state and hover
 
+        GoTo go_to = 14; // Go to a specific location
         
     }
 }

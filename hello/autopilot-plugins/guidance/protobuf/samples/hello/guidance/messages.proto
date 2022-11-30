@@ -33,3 +33,12 @@ message FindTowerParameters_Guidance {
     float y = 2;
     bool visible = 3;
 }
+
+
+message GoTo_Guidance {
+    float x = 1;
+    float y = 2;
+    float z = 3;
+    float yaw = 4;
+    float speed = 5;
+}

@@ -16,6 +16,7 @@ from ..uid import UID
 _Ascend_Mode_Name = "com.parrot.missions.Sitesee.Tower.AscendTower"
 _Find_Mode_Name = UID + ".FindTower"
 _Rotate_Mode_Name = UID + ".RotateTower"
+_Go_To_Mode_Name = "com.parrot.missions.samples.hello.guidance.GoTo"
 
 @guidance_modes(_Ascend_Mode_Name)
 class AscendTower(State):
@@ -72,18 +73,37 @@ class RotateTower(State):
         pbuf_camera2.Command.StopPhoto()
         # self.supervisor.video_manager.PHOTO_EVENT_START()
 
-        # pass
+        # passi
 
     def exit(self, msg):
         self.log.error("SiteSee Rotate Tower mode event exit")
 
+@guidance_modes(_Go_To_Mode_Name)
+class SiteSeeGoTo(State):
+    def enter(self, msg):
+        self.log.error("SiteSee GoTo mode Enter")
+
+        config = hello_airsdk_mode_msgs.GoTo() 
+        config.CopyFrom(msg.go_to) # overwrites the message with the given message's values 
+        self.set_guidance_mode(_Go_To_Mode_Name, hello_gdnc_mode_msgs.GoTo_Guidance(x=config.x)) 
+        self.log.error("SiteSee GoTo mode Enter %s", config)
+
+    def step(self, msg):
+        self.log.error("SiteSee GoTo mode step")
+        pass
+
+    def exit(self, msg):
+        self.log.error("SiteSee GoTo mode event exit")
+
+
 ASCEND_TOWER_STATE = {"name": "ascend_tower", "class": AscendTower}
 FIND_TOWER_STATE = {"name": "find_tower", "class": FindTower}
 ROTATE_TOWER_STATE = {"name": "rotate_tower", "class": RotateTower}
+GO_TO_STATE = {"name": "sitesee_go_to", "class": SiteSeeGoTo}
 
 FLYING_STAGE = {
     "name": "flying",
     "class": DEF_FLYING_STAGE["class"],
     "initial": "manual",
-    "children": [MANUAL_STATE] + [ASCEND_TOWER_STATE, FIND_TOWER_STATE, ROTATE_TOWER_STATE],
+    "children": [MANUAL_STATE] + [ASCEND_TOWER_STATE, FIND_TOWER_STATE, ROTATE_TOWER_STATE, GO_TO_STATE],
 }

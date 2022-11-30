@@ -77,8 +77,11 @@ class numpy_holder(object):
 class GoToMode(gdnc_core.Mode):
     def __init__(self, guidance, name):
         super().__init__(guidance, name)
+        self.log.error("SiteSee Go To Guidance mode init")
+       
         self.loop = self.guidance.get_loop()
         self.msghub = self.guidance.get_message_hub()
+        self.instructions = None
 
         self.tlm_dctl = None
 
@@ -96,10 +99,21 @@ class GoToMode(gdnc_core.Mode):
     def get_triggers(self):
         return (gdnc_core.Trigger.TIMER, 30, 30)
 
-    def configure(self, msg):
+    def configure(self, msg, disable_oa, override_fcam, override_stereo):
         self.log.error("SiteSee Go To Guidance configure msg=%s", msg)
-        if not msg.type_url.endswith(CONFIG_SUFFIX):
-            raise ValueError("Go To: unexpected config: %s" % msg.type_url)
+        # if not msg.type_url.endswith(CONFIG_SUFFIX):
+        #     raise ValueError("Go To: unexpected config: %s" % msg.type_url)
+
+        config_message = HelloGroundModeMessages.GoTo_Guidance()
+        msg.Unpack(config_message)
+        
+        self.instructions = {
+            'x': config_message.x,
+            'y': config_message.y,
+            'z': config_message.z,
+            'yaw': config_message.yaw,
+            'speed': config_message.speed
+        }
 
         #self.step_count = 0
 
@@ -122,8 +136,8 @@ class GoToMode(gdnc_core.Mode):
 
         self.tlm_dctl.fetch_sample()
 
-        drone_pos = np.array((self.tlm_dctl['position_local.x'], self.tlm_dctl['position_local.y']))
-        self.log.error("SiteSee Go To guidance position configure: Local_X:%0.6f, Local_Y:%0.6f", drone_pos[0], drone_pos[1])
+        drone_pos = np.array((self.tlm_dctl['position_local.x'], self.tlm_dctl['position_local.y'], self.tlm_dctl['position_local.z']) , self.tlm_dctl['attitude_euler_angles.yaw'])
+        self.log.error("SiteSee Go To guidance position configure: Local_X:%0.6f, Local_Y:%0.6f, Local_Z:%0.6f, Local_Yaw:%0.6f", drone_pos[0], drone_pos[1], drone_pos[2], drone_pos[3])
 
         ascend_mode_msg = HelloGroundModeMessages.Config()
         msg.Unpack(ascend_mode_msg)
@@ -197,7 +211,42 @@ class GoToMode(gdnc_core.Mode):
 
 
     def generate_drone_reference(self):
-        pass
+        horz_ref = self.gdnc.output.horizontal_reference
+        self.gdnc.output.has_horizontal_reference = True
+
+        horz_ref.trajectory_local.ref.x.x = self.instructions['x']
+
+        horz_ref.trajectory_local.ref.y.x = self.instructions['y']
+
+        # horz_ref.trajectory_local.ref.z.x = self.instructions['z']
+
+        horz_ref.trajectory_local.ref.yaw.x = self.instructions['yaw']
+
+
+        # vert_ref = self.gdnc.output.vertical_reference
+        # self.gdnc.output.has_vertical_reference = True
+
+        # vert_ref.trajectory.ref.x = self.z
+
+        drone_x = self.gdnc.tlm_dctl['position_local.x']
+        drone_y = self.gdnc.tlm_dctl['position_local.y']
+        drone_z = self.gdnc.tlm_dctl['position_local.z']
+        # if self.yaw is not None:
+        #     yaw_ref = self.gdnc.output.yaw_reference
+        #     self.gdnc.output.has_yaw_reference = True
+
+        #     yaw_ref.trajectory_ned.ref.x = self.yaw
+        #     yaw_ref.trajectory_ned.use_shortest_path = True
+
+        #     current_yaw = self.gdnc.tlm_dctl['attitude_euler_angles.yaw']
+        #     yaw_err = self.yaw - current_yaw
+        #     if yaw_err > np.pi:
+        #         yaw_err -= 2 * np.pi
+        #     elif yaw_err < -np.pi:
+        #         yaw_err += 2 * np.pi
+
+        # self.done = ((drone_x - self.x) ** 2 + (drone_y - self.y) ** 2 + (drone_z - self.z) ** 2) ** .5 < (self.yaw is None or abs(yaw_err) < 0.05)
+
 
     def correct_drone_reference(self):
         pass

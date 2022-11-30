@@ -235,7 +235,8 @@ class Mission(AbstractMission):
                 [ msg_id(airsdk_messages.Command, "take_off"), "ground.idle", "takeoff"],
                 [ msg_id(airsdk_messages.Command, "start_ascend_tower"), "hovering", "flying.ascend_tower"],
                 [ msg_id(airsdk_messages.Command, "start_find_tower"), "hovering", "flying.find_tower"],
-                [ msg_id(airsdk_messages.Command, "stop_state"), ["flying.ascend_tower", "flying.find_tower", "flying.rotate_tower"], "hovering"],
+                [ msg_id(airsdk_messages.Command, "go_to"), "hovering", "flying.sitesee_go_to"],
+                [ msg_id(airsdk_messages.Command, "stop_state"), ANY_STATE, "hovering"],
                 [ msg_id(airsdk_messages.Event, "path_obstructed"), "flying", "hovering"]
             ]
 
