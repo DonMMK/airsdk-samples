@@ -85,7 +85,7 @@ class SiteSeeGoTo(State):
 
         config = hello_airsdk_mode_msgs.GoTo() 
         config.CopyFrom(msg.go_to) # overwrites the message with the given message's values 
-        self.set_guidance_mode(_Go_To_Mode_Name, hello_gdnc_mode_msgs.GoTo_Guidance(x=config.x , y=config.y, z=config.z, yaw=config.yaw , speed=config.speed)) 
+        self.set_guidance_mode(_Go_To_Mode_Name, hello_gdnc_mode_msgs.GoTo_Guidance(x=config.x , y=config.y, z=config.z , yaw=config.yaw, speed=config.speed))
         self.log.error("SiteSee GoTo mode Enter %s", config)
 
     def step(self, msg):

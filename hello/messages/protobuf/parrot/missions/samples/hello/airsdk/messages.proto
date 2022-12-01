@@ -56,11 +56,11 @@ message FindTowerParameters {
 }
 
 message GoTo { 
-    float x = 1;
-    float y = 2;
-    float z = 3;
-    float yaw = 4;
-    float speed = 5;
+  float x = 1;
+  float y = 2;
+  float z = 3;
+  float yaw = 4;
+  float speed = 5;
 }
 
 
