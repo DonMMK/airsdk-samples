@@ -224,29 +224,14 @@ class GoToMode(gdnc_core.Mode):
         self.output.has_vertical_reference = True
         self.output.has_yaw_reference = True
 
-        # Rotate Drone
-        
-        
-        
-
         # horz_ref.trajectory_local.ref.x.x = self.my_guidance_config['x']
         horz_ref.trajectory_local.ref.x.x = self.instructions['x']
         horz_ref.trajectory_local.ref.y.x = self.instructions['y']
         vert_ref.trajectory.ref.x = self.instructions['z']
-        
-        # Test this 
+        # Yaw rate
         yaw_ref.rate.ref = self.instructions['yaw']
-        # yaw_ref.rate.ref = 4.0
-
-        # horz_ref.trajectory_local.ref.z.x = self.instructions['z']
-
-        # horz_ref.trajectory_local.ref.yaw.x = self.instructions['yaw']
-
-
-        # vert_ref = self.output.vertical_reference
-        # self.output.has_vertical_reference = True
-
-        # vert_ref.trajectory.ref.x = self.z
+        # To specified yaw angle
+        # yaw_ref.yaw_position_target.threshold = self.instructions['yaw']
 
         drone_x = self.tlm_dctl['position_local.x']
         drone_y = self.tlm_dctl['position_local.y']

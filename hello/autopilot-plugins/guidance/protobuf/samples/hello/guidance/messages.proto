@@ -25,6 +25,7 @@ message Event {
         uint32 my_guidance_event = 2;
         google.protobuf.Empty mission_complete = 3;
         google.protobuf.Empty path_obstructed = 4;
+        google.protobuf.Empty goto_complete = 5;
     }
 }
 

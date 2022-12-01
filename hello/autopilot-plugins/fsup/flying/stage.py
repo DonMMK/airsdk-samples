@@ -51,7 +51,6 @@ class FindTower(State):
         self.supervisor.video_manager.start()
 
     def step(self, msg):
-
         pass
 
     def exit(self, msg):
