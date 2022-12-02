@@ -229,9 +229,11 @@ class GoToMode(gdnc_core.Mode):
         horz_ref.trajectory_local.ref.y.x = self.instructions['y']
         vert_ref.trajectory.ref.x = self.instructions['z']
         # Yaw rate
-        yaw_ref.rate.ref = self.instructions['yaw']
+        # yaw_ref.rate.ref = self.instructions['yaw']
+        
         # To specified yaw angle
-        # yaw_ref.yaw_position_target.threshold = self.instructions['yaw']
+        yaw_ref.trajectory_ned.ref.x = self.instructions['yaw']
+        yaw_ref.trajectory_ned.use_shortest_path = True
 
         drone_x = self.tlm_dctl['position_local.x']
         drone_y = self.tlm_dctl['position_local.y']
