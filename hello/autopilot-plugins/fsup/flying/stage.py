@@ -93,7 +93,12 @@ class SiteSeeGoTo(State):
 
     def exit(self, msg):
         self.log.error("SiteSee GoTo mode event exit")
-
+        if is_msg(msg, hello_gdnc_mode_msgs.Event, "goto_complete"):
+            self.log.info("Sitesee GoTo event: msg=%s", msg)
+            self.mission.ext_ui_msgs.evt.sender.goto_complete()
+        else:
+            self.log.info("Sitesee GoTo event: msg=%s", msg)
+            self.mission.ext_ui_msgs.evt.sender.goto_failed()
 
 ASCEND_TOWER_STATE = {"name": "ascend_tower", "class": AscendTower}
 FIND_TOWER_STATE = {"name": "find_tower", "class": FindTower}

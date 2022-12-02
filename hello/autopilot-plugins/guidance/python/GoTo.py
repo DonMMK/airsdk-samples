@@ -238,6 +238,20 @@ class GoToMode(gdnc_core.Mode):
         drone_x = self.tlm_dctl['position_local.x']
         drone_y = self.tlm_dctl['position_local.y']
         drone_z = self.tlm_dctl['position_local.z']
+        drone_yaw = self.tlm_dctl['attitude_euler_angles.yaw']
+
+        # check if drone is within 0.5m of target position and within 0.05 radians of target yaw
+        if (abs(drone_x - self.instructions['x']) < 0.5) and (abs(drone_y - self.instructions['y']) < 0.05) and (abs(drone_z - self.instructions['z']) < 0.05) and (abs(drone_yaw - self.instructions['yaw']) < 0.05):
+            self.log.error("SiteSee Go To guidance position: X Position:%0.2f , Y Position:%0.2f, Height:%0.2f , Yaw Orientation:%0.6f ", drone_x, drone_y, drone_z , drone_yaw)
+            self.log.error("SiteSee Go To guidance position: X Target:%0.2f , Y Target:%0.2f, Height Target:%0.2f, Yaw Target:%0.6f", self.instructions['x'], self.instructions['y'], self.instructions['z'] , self.instructions['yaw'])
+            self.log.error("SiteSee Go To guidance position: X Error:%0.2f , Y Error:%0.2f, Height Error:%0.2f , Yaw Error:%0.6f ", abs(drone_x - self.instructions['x']), abs(drone_y - self.instructions['y']), abs(drone_z - self.instructions['z']) , abs(drone_yaw - self.instructions['yaw']))
+            self.log.error("SiteSee Go To guidance position: Reached Target")
+            self.log.error("SiteSee Go To guidance position: Sending Go To Complete")
+            msg_event = HelloGroundModeMessages.Event() 
+            msg_event.goto_complete.SetInParent()
+            gdnc_core.msghub_send(self.evt_sender , msg_event)
+
+
         # if self.yaw is not None:
         #     yaw_ref = self.output.yaw_reference
         #     self.output.has_yaw_reference = True

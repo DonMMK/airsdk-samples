@@ -237,7 +237,8 @@ class Mission(AbstractMission):
                 [ msg_id(airsdk_messages.Command, "start_find_tower"), "hovering", "flying.find_tower"],
                 [ msg_id(airsdk_messages.Command, "go_to"), "hovering", "flying.sitesee_go_to"],
                 [ msg_id(airsdk_messages.Command, "stop_state"), ANY_STATE, "hovering"],
-                [ msg_id(airsdk_messages.Event, "path_obstructed"), "flying", "hovering"]
+                [ msg_id(airsdk_messages.Event, "path_obstructed"), "flying", "hovering"],
+                [ msg_id(airsdk_messages.Event, "goto_complete"), "flying", "hovering"],
             ]
 
         return EMERGENCY_TRANSITIONS + TRANSITIONS + DEF_TRANSITIONS
